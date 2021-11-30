@@ -1,9 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
+<head>
+    <!-- .button1 & its hover are classes that can be applied 
+    rgb(4, 67, 137); - Yale Blue
+    rgb(162, 250, 163); - Mint Green
+    rgb(57, 115, 103); - Hookers Green
+    rgb(151, 200, 235); - Pale Celurian
+    rgb(89, 149, 237); - United Nations Blue
+    -->
+    <style>
+        button {
+            border: none;
+            color: white;
+            padding: 16px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            transition-duration: 0.2s;
+            cursor: pointer;
+        }
+        
+        .button1 {
+            background-color: rgb(89, 149, 237);
+            color: black;
+            border: 2px solid rgb(89, 149, 237);
+            font-family: Monaco;
+        }
+        
+        .button1:hover {
+            background-color: rgb(4, 67, 137);
+            color: white;
+        }
+        
+        body {
+            font-family: sans-serif;
+            background-color: rgb(151, 200, 235);
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        
+        h1 {
+            font-family: sans-serif;
+            color: rgb(4, 67, 137);
+            ;
+        }
+        
+        .box1 {
+            width: 1620px;
+            height: 100px;
+            border: 0.001px solid rgb(89, 149, 237);
+            padding: 0px;
+            margin: 0px;
+            background-color: rgb(89, 149, 237);
+        }
+        
+        .boxtext1 {
+            font-family: Monaco;
+            color: rgb(4, 67, 137);
+        }
+        
+        p {
+            font-family: sans-serif;
+            color: rgb(65, 141, 241);
+        }
+        
+        th {
+            font-family: sans-serif;
+            color: rgb(65, 141, 241);
+        }
+        
+        td {
+            font-family: sans-serif;
+            color: rgb(65, 141, 241);
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% if title %}
+    <title>LousyDev • {{ title }}</title>
+    {% else %}
+    <title>LousyDev</title>
+    {% endif %}
+</head>
 
 <body>
-    <h1>Hello World</h1>
-    <p>I'm hosted with GitHub Pages.</p>
+    <div class="box1" style="position:relative; left:-30px; top:-20px;">
+        <h1 class="boxtext1" style="position:relative; left:30px; top:10px;">LousyDev</h1>
+        <div style="position:relative; left:1000px; top:-65px;">
+            <form method="get" action="/home">
+                <button class="button button1" type="submit">Home</button>
+            </form>
+        </div>
+        <div style="position:relative; left:1120px; top:-130px;">
+            <form method="get" action="/about">
+                <button class="button button1" type="submit">About</button>
+            </form>
+        </div>
+        <div style="position:relative; left:1250px; top:-195px;">
+            <form method="get" action="/blog">
+                <button class="button button1" type="submit">Blog</button>
+            </form>
+        </div>
+    </div>
+    {% block content %}{% endblock %}
 </body>
 
 </html>
