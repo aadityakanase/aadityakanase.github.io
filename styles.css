@@ -4,12 +4,13 @@ body {
     background-color: black;
 }
 
-a {}
+a {
+    color: whitesmoke;
+}
 
 h1 {
     color: whitesmoke;
     font-family: 'Raleway', sans-serif;
-    font-size: 150%;
 }
 
 p {
@@ -199,5 +200,97 @@ p {
     position: absolute;
     top: 40%;
     left: 53%;
+    transform: translate(-50%, -50%);
+}
+
+
+/* Bottom half Div */
+
+.wavesdiv {
+    position: absolute;
+    width: 100%;
+    height: 100px;
+    bottom: 15px;
+    left: 1px;
+}
+
+.bottompage {
+    height: 1000px;
+    width: 100%;
+    background-color: #8FDAFE;
+    position: absolute;
+    top: 700%;
+    bottom: 200%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #f3f4f5;
+    /* same thing as whitesmoke :/ */
+}
+
+.giantblob1 {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    left: 100px;
+}
+
+.giantblob2 {
+    position: absolute;
+    top: 19%;
+    left: 30%;
+    /* transform: translate(-50%, -50%); */
+}
+
+.terralunaticbox {
+    height: 400px;
+    width: 500px;
+    background-color: #8FDAFE;
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 67% 33% 68% 32% / 39% 61% 39% 61%;
+    background: #89CFF0;
+}
+
+.terralunaticontentbox {
+    color: whitesmoke;
+    font-family: 'Raleway', sans-serif;
+    font-size: 300%;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.center {
+    position: absolute;
+    top: 150%;
+    left: 53%;
+    transform: translate(-50%, -50%);
+}
+
+.center2 {
+    position: absolute;
+    top: 45%;
+    left: 53%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+}
+
+.terralunaticbox2 {
+    background: rgba(143, 218, 254, 0.61);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(6.7px);
+    -webkit-backdrop-filter: blur(6.7px);
+    height: 300px;
+    width: 80%;
+    z-index: 100;
+    position: absolute;
+    top: 50%;
+    left: 53%;
+    left: 580px;
     transform: translate(-50%, -50%);
 }
