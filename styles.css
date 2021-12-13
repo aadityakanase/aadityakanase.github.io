@@ -1,0 +1,203 @@
+/* Base HTML Tags Stuff idk */
+
+body {
+    background-color: black;
+}
+
+a {}
+
+h1 {
+    color: whitesmoke;
+    font-family: 'Raleway', sans-serif;
+    font-size: 150%;
+}
+
+p {
+    color: whitesmoke;
+}
+
+
+/* Custom CSS Classes :/ */
+
+.lousydevtext {
+    /* display: flex;
+    justify-content: center;
+    align-items: top;
+    height: 80px;
+    width: 190px; */
+    position: absolute;
+    top: -0.5%;
+    left: 5%;
+}
+
+
+/* Top Bar Margins CSS */
+
+.exampletopbar {
+    position: absolute;
+    top: 0%;
+    left: 80%;
+}
+
+
+/* Github Button CSS */
+
+.githubtopbar {
+    position: absolute;
+    top: 0%;
+    left: 89%;
+}
+
+.githubtopbarbutton {
+    display: inline-block;
+    border-radius: 4px;
+    background-color: black;
+    /* #12a4d9 */
+    border: none;
+    color: whitesmoke;
+    text-align: center;
+    font-size: 18px;
+    padding: 10px;
+    width: 150px;
+    transition: all 0.5s;
+    cursor: pointer;
+    margin: 5px;
+    position: absolute;
+    top: 0%;
+    left: 75%;
+}
+
+.githubtopbarbutton span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+}
+
+.githubtopbarbutton span:after {
+    content: '\00bb';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+}
+
+.githubtopbarbutton:hover span {
+    padding-right: 25px;
+}
+
+.githubtopbarbutton:hover span:after {
+    opacity: 1;
+    right: 0;
+}
+
+
+/* Home Button CSS */
+
+.hometopbar {
+    position: absolute;
+    top: 0%;
+    left: 100%;
+}
+
+.hometopbar {
+    display: inline-block;
+    border-radius: 4px;
+    background-color: black;
+    border: none;
+    color: whitesmoke;
+    text-align: center;
+    font-size: 18px;
+    padding: 10px;
+    width: 150px;
+    transition: all 0.5s;
+    cursor: pointer;
+    margin: 5px;
+    position: absolute;
+    top: 0%;
+    left: 85%;
+}
+
+.hometopbar span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+}
+
+.hometopbar span:after {
+    content: '\00bb';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+}
+
+.hometopbar:hover span {
+    padding-right: 25px;
+}
+
+.hometopbar:hover span:after {
+    opacity: 1;
+    right: 0;
+}
+
+
+/* Main Info Box */
+
+.centerboxhome {
+    height: 400px;
+    width: 400px;
+    background-color: #8FDAFE;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 40% 60% 42% 58% / 46% 28% 72% 54%;
+    background: #ebebeb;
+    box-shadow: 35px 35px 9px #c8c8c8, -35px -35px 9px #ffffff;
+}
+
+.floating {
+    animation-name: floating;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+    top: 25%;
+    left: 35%;
+    /* transform: translate(50%, 50%); */
+}
+
+@keyframes floating {
+    0% {
+        transform: translate(0, 0px);
+    }
+    50% {
+        transform: translate(0, 15px);
+    }
+    100% {
+        transform: translate(0, -0px);
+    }
+}
+
+.boxtextspecs {
+    color: black;
+    font-family: 'Raleway', sans-serif;
+    font-size: 150%;
+    position: absolute;
+    top: 10%;
+    left: 45%;
+    transform: translate(-50%, -50%);
+}
+
+.boxtextspecs2 {
+    color: black;
+    font-family: 'Raleway', sans-serif;
+    font-size: 200%;
+    position: absolute;
+    top: 40%;
+    left: 53%;
+    transform: translate(-50%, -50%);
+}
