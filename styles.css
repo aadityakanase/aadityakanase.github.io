@@ -6,6 +6,7 @@ body {
 
 a {
     color: whitesmoke;
+    text-decoration: none;
 }
 
 h1 {
@@ -269,6 +270,7 @@ p {
     top: 150%;
     left: 53%;
     transform: translate(-50%, -50%);
+    text-decoration: bold;
 }
 
 .center2 {
