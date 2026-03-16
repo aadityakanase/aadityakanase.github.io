@@ -68,17 +68,4 @@ function closeMobile() {
 }
 
 
-// ── SCROLL REVEAL ──────────────────────────────────────────────
-(function initReveal() {
-  // Styles are in style.css (.reveal / .reveal.visible)
-  const io = new IntersectionObserver(entries => {
-    for (const e of entries) {
-      if (e.isIntersecting) {
-        e.target.classList.add("visible");
-        io.unobserve(e.target);
-      }
-    }
-  }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" });
 
-  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
-})();
