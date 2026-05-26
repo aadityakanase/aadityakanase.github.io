@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Web Tools | Aaditya Kanase</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Computer+Modern+Serif&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="style.css" />
+
+        <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+        <style>
+            /* Tool Section Styles (Kept inline so style.css remains untouched) */
+            .tool-section {
+                border: 1px solid #eee;
+                padding: 1.5rem;
+                border-radius: 8px;
+                margin-bottom: 2rem;
+                background-color: #fafafa;
+            }
+            .tool-section h3 {
+                margin-top: 0;
+                color: #cc0000;
+            }
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            label {
+                display: block;
+                font-weight: bold;
+                margin-bottom: 0.5rem;
+            }
+            input[type="file"],
+            input[type="text"],
+            select {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 10px;
+                box-sizing: border-box;
+                font-family: inherit;
+            }
+            button {
+                background-color: #cc0000;
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: bold;
+            }
+            button:hover {
+                background-color: #990000;
+            }
+            .disabled-notice {
+                background-color: #fff3f3;
+                color: #cc0000;
+                padding: 10px;
+                border-left: 4px solid #cc0000;
+                font-size: 0.9rem;
+                margin-bottom: 15px;
+            }
+
+            /* New Styles for Image Converter */
+            .checkbox-label {
+                display: flex;
+                align-items: center;
+                font-weight: normal;
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+            .checkbox-label input[type="checkbox"] {
+                width: auto;
+                margin-bottom: 0;
+            }
+            .note {
+                font-size: 0.8rem;
+                color: #666;
+                margin-top: -10px;
+                margin-bottom: 15px;
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        <main class="container">
+            <header>
+                <p><a href="index.html">&larr; Back</a></p>
+            </header>
+
+            <section class="tool-section">
+                <h3>PDF Assembly</h3>
+
+                <div
+                    class="form-group"
+                    style="
+                        margin-bottom: 2rem;
+                        padding-bottom: 1rem;
+                        border-bottom: 1px solid #ddd;
+                    "
+                >
+                    <h4>Merge Multiple PDFs</h4>
+                    <label for="merge-files"
+                        >Select PDFs to combine (hold Ctrl/Cmd to select
+                        multiple):</label
+                    >
+                    <input
+                        type="file"
+                        id="merge-files"
+                        accept="application/pdf"
+                        multiple
+                    />
+                    <button onclick="mergePDFs()">Merge PDFs</button>
+                    <p
+                        id="merge-status"
+                        style="font-size: 0.8rem; color: green"
+                    ></p>
+                </div>
+
+                <div class="form-group">
+                    <h4>Split/Extract PDF Pages</h4>
+                    <label for="split-file">Select a single PDF:</label>
+                    <input
+                        type="file"
+                        id="split-file"
+                        accept="application/pdf"
+                    />
+
+                    <label for="page-ranges" style="margin-top: 10px"
+                        >Pages to extract (e.g., 1, 3, 5-7):</label
+                    >
+                    <input
+                        type="text"
+                        id="page-ranges"
+                        placeholder="Leave blank to extract ALL pages as separate PDFs"
+                    />
+
+                    <button onclick="splitPDF()">Split & Download (ZIP)</button>
+                    <p
+                        id="split-status"
+                        style="font-size: 0.8rem; color: green"
+                    ></p>
+                </div>
+            </section>
+
+            <section class="tool-section">
+                <h3>Image Converter & Background Editor</h3>
+
+                <div class="form-group">
+                    <label for="image-file"
+                        >Select Image (PNG, JPG, JPEG, WEBP):</label
+                    >
+                    <input
+                        type="file"
+                        id="image-file"
+                        accept="image/png, image/jpeg, image/webp"
+                    />
+
+                    <label for="output-format" style="margin-top: 10px"
+                        >Output Format:</label
+                    >
+                    <select id="output-format">
+                        <option value="image/png">PNG</option>
+                        <option value="image/jpeg">JPG / JPEG</option>
+                        <option value="image/webp">WEBP</option>
+                    </select>
+
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="remove-bg" />
+                        Remove Background
+                    </label>
+                    <span class="note"
+                        >Note: Background removal runs entirely in your browser.
+                        The first run requires downloading an AI model to your
+                        local cache.</span
+                    >
+
+                    <button onclick="processImage()">Process Image</button>
+                    <p
+                        id="image-status"
+                        style="font-size: 0.8rem; font-weight: bold"
+                    ></p>
+                </div>
+            </section>
+        </main>
+
+        <script>
+            // Helper function updated to handle both raw bytes (PDFs) and Blobs (Images)
+            function downloadBytes(bytesOrBlob, filename, type) {
+                const blob =
+                    bytesOrBlob instanceof Blob
+                        ? bytesOrBlob
+                        : new Blob([bytesOrBlob], { type: type });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // PDF Merge Logic
+            async function mergePDFs() {
+                const fileInput = document.getElementById("merge-files");
+                const status = document.getElementById("merge-status");
+
+                if (fileInput.files.length < 2) {
+                    alert("Please select at least two PDF files to merge.");
+                    return;
+                }
+
+                status.innerText = "Merging... please wait.";
+                try {
+                    const mergedPdf = await PDFLib.PDFDocument.create();
+
+                    for (let file of fileInput.files) {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                        const copiedPages = await mergedPdf.copyPages(
+                            pdf,
+                            pdf.getPageIndices(),
+                        );
+                        copiedPages.forEach((page) => mergedPdf.addPage(page));
+                    }
+
+                    const mergedPdfFile = await mergedPdf.save();
+                    downloadBytes(
+                        mergedPdfFile,
+                        "Merged_Document.pdf",
+                        "application/pdf",
+                    );
+                    status.innerText = "Merge complete!";
+                } catch (error) {
+                    console.error(error);
+                    status.innerText = "Error merging PDFs.";
+                    status.style.color = "red";
+                }
+            }
+
+            // Parse range string "1, 3, 5-7" to array of 0-based indices [0, 2, 4, 5, 6]
+            function parsePageRanges(rangeStr, maxPages) {
+                if (!rangeStr.trim()) {
+                    return Array.from({ length: maxPages }, (_, i) => i);
+                }
+                const pages = new Set();
+                const parts = rangeStr.split(",");
+                for (let part of parts) {
+                    part = part.trim();
+                    if (part.includes("-")) {
+                        const [start, end] = part
+                            .split("-")
+                            .map((num) => parseInt(num, 10));
+                        for (let i = start; i <= end; i++) {
+                            if (i > 0 && i <= maxPages) pages.add(i - 1);
+                        }
+                    } else {
+                        const num = parseInt(part, 10);
+                        if (num > 0 && num <= maxPages) pages.add(num - 1);
+                    }
+                }
+                return Array.from(pages).sort((a, b) => a - b);
+            }
+
+            // PDF Split Logic
+            async function splitPDF() {
+                const fileInput = document.getElementById("split-file");
+                const rangeInput = document.getElementById("page-ranges").value;
+                const status = document.getElementById("split-status");
+
+                if (fileInput.files.length === 0) {
+                    alert("Please select a PDF file to split.");
+                    return;
+                }
+
+                status.innerText = "Processing... please wait.";
+                try {
+                    const file = fileInput.files[0];
+                    const arrayBuffer = await file.arrayBuffer();
+                    const sourcePdf =
+                        await PDFLib.PDFDocument.load(arrayBuffer);
+                    const totalPages = sourcePdf.getPageCount();
+
+                    const pagesToExtract = parsePageRanges(
+                        rangeInput,
+                        totalPages,
+                    );
+
+                    if (pagesToExtract.length === 0) {
+                        alert("Invalid page range.");
+                        status.innerText = "";
+                        return;
+                    }
+
+                    const zip = new JSZip();
+
+                    for (let i = 0; i < pagesToExtract.length; i++) {
+                        const pageIndex = pagesToExtract[i];
+                        const newPdf = await PDFLib.PDFDocument.create();
+                        const [copiedPage] = await newPdf.copyPages(sourcePdf, [
+                            pageIndex,
+                        ]);
+                        newPdf.addPage(copiedPage);
+                        const pdfBytes = await newPdf.save();
+                        zip.file(`Page_${pageIndex + 1}.pdf`, pdfBytes);
+                    }
+
+                    const zipContent = await zip.generateAsync({
+                        type: "blob",
+                    });
+                    downloadBytes(
+                        zipContent,
+                        "Split_Pages.zip",
+                        "application/zip",
+                    );
+                    status.innerText =
+                        "Extraction complete! Downloaded as ZIP.";
+                } catch (error) {
+                    console.error(error);
+                    status.innerText = "Error splitting PDF.";
+                    status.style.color = "red";
+                }
+            }
+
+            // Image Processing Logic
+            async function processImage() {
+                const fileInput = document.getElementById("image-file");
+                const formatSelect =
+                    document.getElementById("output-format").value;
+                const removeBg = document.getElementById("remove-bg").checked;
+                const status = document.getElementById("image-status");
+
+                if (fileInput.files.length === 0) {
+                    alert("Please select an image file first.");
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                status.style.color = "#0056b3";
+
+                try {
+                    let imageToProcess = file;
+
+                    // 1. Client-Side Background Removal
+                    // 1. Client-Side Background Removal
+                    if (removeBg) {
+                        status.innerText =
+                            "Removing background... (Initializing AI model can take a few seconds)";
+
+                        // Dynamically import the ES module directly from jsDelivr
+                        const module =
+                            await import("https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm");
+                        const imglyRemoveBackground = module.default;
+
+                        // Configure the public path so the library knows where to fetch the WASM/ONNX models
+                        const config = {
+                            publicPath:
+                                "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/",
+                        };
+
+                        imageToProcess = await imglyRemoveBackground(
+                            imageToProcess,
+                            config,
+                        );
+                    }
+
+                    status.innerText = "Converting format...";
+
+                    // 2. Format Conversion via HTML5 Canvas
+                    const img = new Image();
+                    const url = URL.createObjectURL(imageToProcess);
+
+                    img.onload = () => {
+                        const canvas = document.createElement("canvas");
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext("2d");
+
+                        // If converting a transparent image to JPEG, fill with white so it isn't rendered as a black block
+                        if (formatSelect === "image/jpeg") {
+                            ctx.fillStyle = "#FFFFFF";
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        }
+
+                        ctx.drawImage(img, 0, 0);
+
+                        canvas.toBlob(
+                            (blob) => {
+                                // Determine the correct extension string
+                                const ext = formatSelect.split("/")[1];
+                                const extensionLabel =
+                                    ext === "jpeg" ? "jpg" : ext;
+
+                                // Create the new filename
+                                const originalName =
+                                    file.name.substring(
+                                        0,
+                                        file.name.lastIndexOf("."),
+                                    ) || file.name;
+                                const suffix = removeBg
+                                    ? "_nobg"
+                                    : "_converted";
+                                const newFilename = `${originalName}${suffix}.${extensionLabel}`;
+
+                                // Trigger Download
+                                downloadBytes(blob, newFilename, formatSelect);
+
+                                status.innerText =
+                                    "Image processed and downloaded successfully!";
+                                status.style.color = "green";
+
+                                URL.revokeObjectURL(url);
+                            },
+                            formatSelect,
+                            0.95,
+                        ); // Compression quality for JPEG/WEBP
+                    };
+
+                    img.onerror = () => {
+                        throw new Error("Failed to load image onto canvas.");
+                    };
+
+                    img.src = url;
+                } catch (error) {
+                    console.error("Image processing error:", error);
+                    status.innerText =
+                        "An error occurred while processing the image. Check the browser console for details.";
+                    status.style.color = "red";
+                }
+            }
+        </script>
+    </body>
+</html>
