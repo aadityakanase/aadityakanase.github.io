@@ -12,6 +12,7 @@
 
         <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 
         <style>
             /* Tool Section Styles (Kept inline so style.css remains untouched) */
@@ -151,12 +152,12 @@
 
                 <div class="form-group">
                     <label for="image-file"
-                        >Select Image (PNG, JPG, JPEG, WEBP):</label
+                        >Select Image (PNG, JPG, JPEG, WEBP, HEIC):</label
                     >
                     <input
                         type="file"
                         id="image-file"
-                        accept="image/png, image/jpeg, image/webp"
+                        accept="image/png, image/jpeg, image/webp, .heic, image/heic"
                     />
 
                     <label for="output-format" style="margin-top: 10px"
@@ -345,7 +346,31 @@
                 try {
                     let imageToProcess = file;
 
-                    // 1. Client-Side Background Removal
+                    // 0. Intercept and Convert HEIC first
+                    const isHeic =
+                        file.name.toLowerCase().endsWith(".heic") ||
+                        file.type === "image/heic";
+                    if (isHeic) {
+                        status.innerText =
+                            "Converting HEIC format... please wait.";
+                        try {
+                            const convertedBlob = await heic2any({
+                                blob: file,
+                                toType: "image/jpeg",
+                                quality: 0.95,
+                            });
+                            // heic2any returns an array if it's an animation/burst, so ensure we grab the first blob
+                            imageToProcess = Array.isArray(convertedBlob)
+                                ? convertedBlob[0]
+                                : convertedBlob;
+                        } catch (heicError) {
+                            console.error("HEIC conversion error:", heicError);
+                            status.innerText = "Failed to parse HEIC image.";
+                            status.style.color = "red";
+                            return;
+                        }
+                    }
+
                     // 1. Client-Side Background Removal
                     if (removeBg) {
                         status.innerText =
@@ -395,7 +420,7 @@
                                 const extensionLabel =
                                     ext === "jpeg" ? "jpg" : ext;
 
-                                // Create the new filename
+                                // Create the new filename based on original input name
                                 const originalName =
                                     file.name.substring(
                                         0,
