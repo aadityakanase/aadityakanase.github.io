@@ -11,7 +11,21 @@ body {
 
 @media (max-width: 800px) {
     body {
-        margin: 2rem auto 2rem 2rem;
+        /* Centers the container and removes the hard-coded left margin */
+        margin: 2rem auto;
+        /* Ensures the text doesn't touch the edges of the phone screen */
+        padding: 0 1.5rem;
+    }
+
+    .header-content {
+        /* Allows the logos to drop to a new line if they run out of space */
+        flex-wrap: wrap;
+    }
+
+    h1 {
+        /* Optional: Allows your name to wrap on extremely narrow screens
+           (like the iPhone SE) instead of overflowing */
+        white-space: normal;
     }
 }
 
