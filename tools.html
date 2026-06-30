@@ -152,12 +152,13 @@
 
                 <div class="form-group">
                     <label for="image-file"
-                        >Select Image (PNG, JPG, JPEG, WEBP, HEIC):</label
+                        >Select Image(s) (PNG, JPG, JPEG, WEBP, HEIC):</label
                     >
                     <input
                         type="file"
                         id="image-file"
                         accept="image/png, image/jpeg, image/webp, .heic, image/heic"
+                        multiple 
                     />
 
                     <label for="output-format" style="margin-top: 10px"
@@ -179,7 +180,7 @@
                         local cache.</span
                     >
 
-                    <button onclick="processImage()">Process Image</button>
+                    <button onclick="processImage()">Process Image(s)</button>
                     <p
                         id="image-status"
                         style="font-size: 0.8rem; font-weight: bold"
@@ -327,133 +328,124 @@
                 }
             }
 
-            // Image Processing Logic
+            // Image Processing Logic (Updated for Multiple Files & ZIP)
             async function processImage() {
                 const fileInput = document.getElementById("image-file");
-                const formatSelect =
-                    document.getElementById("output-format").value;
+                const formatSelect = document.getElementById("output-format").value;
                 const removeBg = document.getElementById("remove-bg").checked;
                 const status = document.getElementById("image-status");
 
                 if (fileInput.files.length === 0) {
-                    alert("Please select an image file first.");
+                    alert("Please select at least one image file.");
                     return;
                 }
 
-                const file = fileInput.files[0];
                 status.style.color = "#0056b3";
-
+                
                 try {
-                    let imageToProcess = file;
-
-                    // 0. Intercept and Convert HEIC first
-                    const isHeic =
-                        file.name.toLowerCase().endsWith(".heic") ||
-                        file.type === "image/heic";
-                    if (isHeic) {
-                        status.innerText =
-                            "Converting HEIC format... please wait.";
-                        try {
-                            const convertedBlob = await heic2any({
-                                blob: file,
-                                toType: "image/jpeg",
-                                quality: 0.95,
-                            });
-                            // heic2any returns an array if it's an animation/burst, so ensure we grab the first blob
-                            imageToProcess = Array.isArray(convertedBlob)
-                                ? convertedBlob[0]
-                                : convertedBlob;
-                        } catch (heicError) {
-                            console.error("HEIC conversion error:", heicError);
-                            status.innerText = "Failed to parse HEIC image.";
-                            status.style.color = "red";
-                            return;
-                        }
-                    }
-
-                    // 1. Client-Side Background Removal
+                    const isMultiple = fileInput.files.length > 1;
+                    const zip = isMultiple ? new JSZip() : null;
+                    
+                    // Conditionally load Background Removal Module once for the batch
+                    let imglyRemoveBackground = null;
+                    let config = null;
                     if (removeBg) {
-                        status.innerText =
-                            "Removing background... (Initializing AI model can take a few seconds)";
-
-                        // Dynamically import the ES module directly from jsDelivr
-                        const module =
-                            await import("https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm");
-                        const imglyRemoveBackground = module.default;
-
-                        // Configure the public path so the library knows where to fetch the WASM/ONNX models
-                        const config = {
-                            publicPath:
-                                "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/",
+                        status.innerText = "Initializing AI model... (Can take a few seconds)";
+                        const module = await import("https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm");
+                        imglyRemoveBackground = module.default;
+                        config = {
+                            publicPath: "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/",
                         };
-
-                        imageToProcess = await imglyRemoveBackground(
-                            imageToProcess,
-                            config,
-                        );
                     }
 
-                    status.innerText = "Converting format...";
+                    // Process each file
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        const file = fileInput.files[i];
+                        let imageToProcess = file;
+                        
+                        status.innerText = `Processing image ${i + 1} of ${fileInput.files.length}... (${file.name})`;
 
-                    // 2. Format Conversion via HTML5 Canvas
-                    const img = new Image();
-                    const url = URL.createObjectURL(imageToProcess);
-
-                    img.onload = () => {
-                        const canvas = document.createElement("canvas");
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        const ctx = canvas.getContext("2d");
-
-                        // If converting a transparent image to JPEG, fill with white so it isn't rendered as a black block
-                        if (formatSelect === "image/jpeg") {
-                            ctx.fillStyle = "#FFFFFF";
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        // 0. Intercept and Convert HEIC first
+                        const isHeic = file.name.toLowerCase().endsWith(".heic") || file.type === "image/heic";
+                        if (isHeic) {
+                            try {
+                                const convertedBlob = await heic2any({
+                                    blob: file,
+                                    toType: "image/jpeg",
+                                    quality: 0.95,
+                                });
+                                imageToProcess = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+                            } catch (heicError) {
+                                console.error(`HEIC conversion error for ${file.name}:`, heicError);
+                                continue; // Skip to the next file if this one fails
+                            }
                         }
 
-                        ctx.drawImage(img, 0, 0);
+                        // 1. Client-Side Background Removal
+                        if (removeBg && imglyRemoveBackground) {
+                            imageToProcess = await imglyRemoveBackground(imageToProcess, config);
+                        }
 
-                        canvas.toBlob(
-                            (blob) => {
-                                // Determine the correct extension string
-                                const ext = formatSelect.split("/")[1];
-                                const extensionLabel =
-                                    ext === "jpeg" ? "jpg" : ext;
+                        // 2. Format Conversion via HTML5 Canvas (Wrapped in a Promise for async loop)
+                        const processedData = await new Promise((resolve, reject) => {
+                            const img = new Image();
+                            const url = URL.createObjectURL(imageToProcess);
 
-                                // Create the new filename based on original input name
-                                const originalName =
-                                    file.name.substring(
-                                        0,
-                                        file.name.lastIndexOf("."),
-                                    ) || file.name;
-                                const suffix = removeBg
-                                    ? "_nobg"
-                                    : "_converted";
-                                const newFilename = `${originalName}${suffix}.${extensionLabel}`;
+                            img.onload = () => {
+                                const canvas = document.createElement("canvas");
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                const ctx = canvas.getContext("2d");
 
-                                // Trigger Download
-                                downloadBytes(blob, newFilename, formatSelect);
+                                if (formatSelect === "image/jpeg") {
+                                    ctx.fillStyle = "#FFFFFF";
+                                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                }
 
-                                status.innerText =
-                                    "Image processed and downloaded successfully!";
-                                status.style.color = "green";
+                                ctx.drawImage(img, 0, 0);
 
-                                URL.revokeObjectURL(url);
-                            },
-                            formatSelect,
-                            0.95,
-                        ); // Compression quality for JPEG/WEBP
-                    };
+                                canvas.toBlob((blob) => {
+                                    const ext = formatSelect.split("/")[1];
+                                    const extensionLabel = ext === "jpeg" ? "jpg" : ext;
+                                    const originalName = file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
+                                    const suffix = removeBg ? "_nobg" : "_converted";
+                                    const newFilename = `${originalName}${suffix}.${extensionLabel}`;
+                                    
+                                    URL.revokeObjectURL(url);
+                                    resolve({ blob: blob, filename: newFilename });
+                                }, formatSelect, 0.95);
+                            };
 
-                    img.onerror = () => {
-                        throw new Error("Failed to load image onto canvas.");
-                    };
+                            img.onerror = () => {
+                                reject(new Error(`Failed to load image: ${file.name}`));
+                            };
 
-                    img.src = url;
+                            img.src = url;
+                        });
+
+                        // Add to Zip or prepare for direct download
+                        if (isMultiple) {
+                            zip.file(processedData.filename, processedData.blob);
+                        } else {
+                            downloadBytes(processedData.blob, processedData.filename, formatSelect);
+                        }
+                    }
+
+                    // 3. Finalize Output
+                    if (isMultiple) {
+                        status.innerText = "Zipping converted files... please wait.";
+                        const zipContent = await zip.generateAsync({ type: "blob" });
+                        downloadBytes(zipContent, "Converted_Images.zip", "application/zip");
+                        status.innerText = "All images processed and downloaded as ZIP!";
+                    } else {
+                        status.innerText = "Image processed and downloaded successfully!";
+                    }
+                    
+                    status.style.color = "green";
+
                 } catch (error) {
-                    console.error("Image processing error:", error);
-                    status.innerText =
-                        "An error occurred while processing the image. Check the browser console for details.";
+                    console.error("Batch image processing error:", error);
+                    status.innerText = "An error occurred while processing the images. Check the browser console.";
                     status.style.color = "red";
                 }
             }
